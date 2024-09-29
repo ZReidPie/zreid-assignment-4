@@ -1,0 +1,142 @@
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f0f0f5;
+	text-align: center;
+	padding: 20px;
+}
+
+h1 {
+	color: #2d5caa;
+	font-size: 32px;
+}
+
+.container {
+	width: 50%;
+	margin: 0 auto;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Adding padding to the form elements */
+label {
+	display: block;
+	margin-bottom: 8px; /* Add space between label and input */
+	font-weight: bold;
+}
+
+input[type="number"],
+select {
+	width: 100%;
+	padding: 10px;
+	margin: 15px 0; /* Add vertical space between inputs */
+	font-size: 16px;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+}
+
+button {
+	padding: 10px 20px;
+	font-size: 16px;
+	margin: 10px 10px 0 10px;
+	border: none;
+	border-radius: 5px;
+	color: white;
+	cursor: pointer;
+}
+
+button.enabled {
+	background-color: #2d5caa;
+}
+
+button.disabled {
+	background-color: grey;
+	cursor: not-allowed;
+}
+
+.plot {
+	margin-top: 30px;
+}
+
+/* 
+1. Make data points D
+2. Visualize data points to put on screen D
+3. Make function for every Initialization Method (Random, Farthest First, KMeans++, Manual)
+- Manuel is special since you need the user to pick the points and calculate coordinates 
+-- also for manuel grey out "Step through K-means" and "Run to convenrgence" before they put num of clusters
+- functions takes method, num of clusters, and method of visualization
+Ex. Step through K-means, Run to convenrgence, Reset Algorithm
+Step through K-means: show step by step to convenrgence
+Run to convenrgence: Automatically go to convenrgence step
+Generate New Dataset: change base dataset and reset to beginning 
+Reset Algorithm: reset to beginning no change in data
+4. Make a snackbar for when algorithm finally convergeges 
+  */
+
+/* Snackbar styling */
+#snackbar {
+	visibility: hidden;
+	min-width: 250px;
+	background-color: #333;
+	color: #fff;
+	text-align: center;
+	border-radius: 2px;
+	padding: 16px;
+	position: fixed;
+	z-index: 1;
+	left: 50%;
+	bottom: 30px;
+	font-size: 17px;
+	transform: translateX(-50%);
+}
+
+#snackbar.show {
+	visibility: visible;
+	-webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+	animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+	from {
+		bottom: 0;
+		opacity: 0;
+	}
+	to {
+		bottom: 30px;
+		opacity: 1;
+	}
+}
+
+@-webkit-keyframes fadeout {
+	from {
+		bottom: 30px;
+		opacity: 1;
+	}
+	to {
+		bottom: 0;
+		opacity: 0;
+	}
+}
+
+@keyframes fadein {
+	from {
+		bottom: 0;
+		opacity: 0;
+	}
+	to {
+		bottom: 30px;
+		opacity: 1;
+	}
+}
+
+@keyframes fadeout {
+	from {
+		bottom: 30px;
+		opacity: 1;
+	}
+	to {
+		bottom: 0;
+		opacity: 0;
+	}
+}

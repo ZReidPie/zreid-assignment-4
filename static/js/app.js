@@ -35,106 +35,107 @@ document.getElementById("num_clusters").addEventListener("input", function () {
 
 // 3 of 4 main buttons 1
 document.getElementById("generate_btn").addEventListener("click", function () {
-	// Fetch new data from the backend (Flask) and update the plot
 	fetch("/generate_data")
-		.then((response) => response.json()) // Convert the response to JSON
+		.then((response) => response.json())
 		.then((data) => {
-			console.log("New dataset fetched:", data); // Log to confirm new data is being fetched
+			console.log("New dataset fetched:", data);
+			originalData = data; // Store the dataset globally for future reference
 
-			// Prepare data for Plotly (x and y values)
-			const xValues = data.map((point) => point[0]);
-			const yValues = data.map((point) => point[1]);
-
-			// Plotting the new dataset using Plotly.react to update the plot
-			const plotData = [
-				{
-					x: xValues,
-					y: yValues,
-					mode: "markers",
-					marker: { color: "blue", size: 8 }, // Customize marker appearance
-				},
-			];
-
-			const layout = {
-				title: "KMeans Clustering Data",
-				xaxis: { title: "X-axis" },
-				yaxis: { title: "Y-axis" },
-			};
-
-			// Use Plotly.react to update the plot with new data (replaces old plot)
-			Plotly.react("kmeans_plot", plotData, layout);
+			// Plotting the new dataset
+			plotData(originalData);
 		})
 		.catch((error) => {
 			console.error("Error fetching data:", error);
 		});
 });
 
-// 1
+// Function to reset the algorithm and replot the original data without clusters or centroids
 document.getElementById("reset_btn").addEventListener("click", function () {
-	// Reset the algorithm state
 	console.log("Resetting algorithm...");
 
-	// Reset global variables for centroids and clusters
-	currentCentroids = [];
-	clusterAssignments = [];
-	iteration = 0;
+	// Check if the original data exists
+	if (originalData && originalData.length > 0) {
+		// Reset global variables for centroids, clusters, and iteration
+		currentCentroids = [];
+		clusterAssignments = [];
+		iteration = 0;
 
-	// Fetch the current dataset and replot it without any centroids or clusters
-	fetch("/generate_data")
-		.then((response) => response.json())
-		.then((data) => {
-			// Prepare data for Plotly (x and y values for the data points)
-			const xValues = data.map((point) => point[0]);
-			const yValues = data.map((point) => point[1]);
-
-			// Plotting the dataset without centroids (reset state)
-			const dataPoints = {
-				x: xValues,
-				y: yValues,
-				mode: "markers",
-				marker: { color: "blue", size: 8 }, // Customize marker appearance
-			};
-
-			const layout = {
-				title: "KMeans Clustering Reset",
-				xaxis: { title: "X-axis" },
-				yaxis: { title: "Y-axis" },
-			};
-
-			// Clear the plot by replotting just the data points (no centroids)
-			Plotly.newPlot("kmeans_plot", [dataPoints], layout);
-
-			// Optionally, inform the user the algorithm has been reset
-			alert(
-				"Algorithm reset. You can select a new initialization method and try again."
-			);
-		})
-		.catch((error) => console.error("Error resetting algorithm:", error));
+		// Replot the original dataset without centroids or clusters
+		plotData(originalData);
+		alert(
+			"Algorithm reset. You can select a new initialization method and try again."
+		);
+	} else {
+		console.error("No original data found. Cannot reset.");
+		alert("No dataset to reset. Please generate data first.");
+	}
 });
 
 // 1
 document.getElementById("converge_btn").addEventListener("click", function () {
-	console.log("Running to convergence...");
+	const initMethod = document.getElementById("init_method").value;
+	const numClusters = parseInt(document.getElementById("num_clusters").value);
 
-	// Fetch the current dataset and run KMeans to convergence
-	fetch("/generate_data")
-		.then((response) => response.json())
-		.then((data) => {
-			runKMeansToConvergence(data, currentCentroids);
-		})
-		.catch((error) =>
-			console.error("Error running KMeans to convergence:", error)
+	if (isNaN(numClusters) || numClusters <= 0) {
+		alert("Please enter a valid number of clusters.");
+		return;
+	}
+
+	// Check the initialization method and ensure it's called before running KMeans
+	switch (initMethod) {
+		case "random":
+			initializeRandom(numClusters);
+			break;
+		case "farthest":
+			initializeFarthestFirst(numClusters);
+			break;
+		case "kmeans++":
+			initializeKMeansPlusPlus(numClusters);
+			break;
+		case "manual":
+			if (!manualCentroids || manualCentroids.length < numClusters) {
+				alert("Please select enough centroids manually.");
+				return;
+			}
+			currentCentroids = manualCentroids;
+			break;
+		default:
+			alert("Please select a valid initialization method.");
+			return;
+	}
+
+	// Ensure centroids are set before running KMeans
+	setTimeout(function () {
+		if (!currentCentroids || currentCentroids.length === 0) {
+			alert(
+				"Centroids not initialized. Please select an initialization method first."
+			);
+			return;
+		}
+
+		console.log(
+			"Running KMeans to convergence with centroids:",
+			currentCentroids
 		);
+		runKMeansToConvergence(originalData, currentCentroids);
+	}, 500); // Add a small delay to ensure centroids are set correctly after initialization
 });
 
 // Function to run KMeans algorithm until convergence
 function runKMeansToConvergence(data, initialCentroids) {
+	if (!Array.isArray(initialCentroids) || initialCentroids.length === 0) {
+		console.error("Centroids are undefined or empty. Cannot run KMeans.");
+		alert(
+			"Centroids not initialized. Please select a valid initialization method."
+		);
+		return;
+	}
+
 	let centroids = initialCentroids;
 	let converged = false;
 	let maxIterations = 100; // Set a limit to avoid infinite loops
 	let iterationCount = 0;
 
-	// Iteratively run KMeans until convergence or max iterations are reached
 	while (!converged && iterationCount < maxIterations) {
 		// Step 1: Assign points to the nearest centroid
 		assignPointsToClusters(data, centroids);
@@ -146,7 +147,7 @@ function runKMeansToConvergence(data, initialCentroids) {
 			clusterAssignments
 		);
 
-		// Check if centroids have converged (i.e., they no longer move)
+		// Check if centroids have converged
 		converged = checkConvergence(centroids, newCentroids);
 
 		// Update centroids for the next iteration
@@ -159,7 +160,7 @@ function runKMeansToConvergence(data, initialCentroids) {
 	plotKMeansIteration(data, centroids, clusterAssignments);
 
 	if (converged) {
-		showSnackbar(); // Show the snackbar to notify convergence
+		showSnackbar(); // Show snackbar notification
 		alert(`KMeans converged after ${iterationCount} iterations.`);
 	} else {
 		alert(
@@ -222,7 +223,6 @@ document.getElementById("step_btn").addEventListener("click", function () {
 
 // Function to handle Random initialization
 function initializeRandom(numClusters) {
-	// Fetch random centroids from the backend
 	fetch("/initialize_random", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -230,14 +230,21 @@ function initializeRandom(numClusters) {
 	})
 		.then((response) => response.json())
 		.then((centroids) => {
-			console.log("Random centroids:", centroids);
-			// Plot the centroids and proceed with KMeans algorithm
-			plotDataWithCentroids(centroids);
-			stepThroughKMeans(centroids);
+			if (!centroids || centroids.length === 0) {
+				console.error("Failed to initialize random centroids.");
+				alert("Failed to initialize centroids. Please try again.");
+				return;
+			}
+			currentCentroids = centroids; // Store centroids globally
+			plotDataWithCentroids(centroids); // Plot the centroids on the visualization
+			console.log("Random centroids initialized:", currentCentroids);
 		})
-		.catch((error) =>
-			console.error("Error initializing random centroids:", error)
-		);
+		.catch((error) => {
+			console.error("Error initializing centroids:", error);
+			alert(
+				"An error occurred while initializing centroids. Please try again."
+			);
+		});
 }
 
 // Function to handle Farthest First initialization
@@ -412,6 +419,11 @@ function stepThroughKMeans(centroids) {
 
 // Function to assign points to the nearest centroid 1
 function assignPointsToClusters(data, centroids) {
+	if (!Array.isArray(centroids) || centroids.length === 0) {
+		console.error("Centroids are not defined or empty.");
+		return;
+	}
+
 	clusterAssignments = new Array(centroids.length).fill(null).map(() => []);
 
 	data.forEach((point) => {
@@ -432,7 +444,9 @@ function assignPointsToClusters(data, centroids) {
 		});
 
 		// Assign the point to the nearest centroid's cluster
-		clusterAssignments[nearestCentroidIndex].push(point);
+		if (nearestCentroidIndex !== -1) {
+			clusterAssignments[nearestCentroidIndex].push(point);
+		}
 	});
 }
 
@@ -513,4 +527,28 @@ function showSnackbar() {
 	setTimeout(function () {
 		snackbar.className = snackbar.className.replace("show", "");
 	}, 3000); // Show the snackbar for 3 seconds
+}
+
+// Function to plot the dataset without centroids or clusters
+function plotData(data) {
+	// Prepare data for Plotly (x and y values for the data points)
+	const xValues = data.map((point) => point[0]);
+	const yValues = data.map((point) => point[1]);
+
+	// Plotting the dataset without centroids
+	const dataPoints = {
+		x: xValues,
+		y: yValues,
+		mode: "markers",
+		marker: { color: "blue", size: 8 }, // Customize marker appearance
+	};
+
+	const layout = {
+		title: "KMeans Clustering Data",
+		xaxis: { title: "X-axis" },
+		yaxis: { title: "Y-axis" },
+	};
+
+	// Clear the plot by replotting just the data points (no centroids or clusters)
+	Plotly.newPlot("kmeans_plot", [dataPoints], layout);
 }

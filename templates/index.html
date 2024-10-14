@@ -3,54 +3,33 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>KMeans Clustering Algorithm</title>
-		<link rel="stylesheet" href="static\css\main.css" />
+		<title>(LSA) Search Engine</title>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/main.css') }}"
+		/>
 		<!-- Link to the CSS file -->
 	</head>
 	<body>
-		<h1>KMeans Clustering Algorithm</h1>
 		<div class="container">
-			<label for="num_clusters">Number of Clusters (k):</label>
-			<input
-				type="number"
-				id="num_clusters"
-				min="1"
-				placeholder="Enter number of clusters"
-			/>
-
-			<label for="init_method">Initialization Method:</label>
-			<select id="init_method">
-				<option value="random">Random</option>
-				<option value="farthest">Farthest First</option>
-				<option value="kmeans++">KMeans++</option>
-				<option value="manual">Manual</option>
-			</select>
-
-			<div>
-				<button id="step_btn" class="disabled" disabled>
-					Step Through KMeans
-				</button>
-				<button id="converge_btn" class="disabled" disabled>
-					Run to Convergence
-				</button>
-			</div>
-
-			<div>
-				<button id="generate_btn" class="enabled">Generate New Dataset</button>
-				<button id="reset_btn" class="enabled">Reset Algorithm</button>
-			</div>
+			<h1>Latent Semantic Analysis (LSA) Search Engine</h1>
+			<form id="searchForm">
+				<input
+					type="text"
+					id="query"
+					name="query"
+					placeholder="Enter your query..."
+					required
+				/>
+				<button type="submit">Search</button>
+			</form>
+			<div id="results"></div>
+			<canvas id="similarityChart" width="400" height="200"></canvas>
 		</div>
 
-		<div class="plot" id="plot_div">
-			<h3>KMeans Clustering Data</h3>
-			<div id="kmeans_plot"></div>
-			<!-- Plotly plot will be inserted here -->
-		</div>
-
-		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-		<!-- Link to Plotly -->
-		<script src="static\js\app.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<!-- Link to Chart.js -->
+		<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 		<!-- Link to the JavaScript file -->
-		<div id="snackbar">KMeans Algorithm Converged!</div>
 	</body>
 </html>

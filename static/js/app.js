@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p><strong>Similarity:</strong> ${doc.similarity.toFixed(
 											4
 										)}</p>
-                    <p>${doc.text.substring(0, 300)}...</p>`; // Truncate long text
+                    <p>${doc.text}...</p>`; // Truncate long text
 					resultsDiv.appendChild(resultItem);
 				});
 

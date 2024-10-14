@@ -6,7 +6,6 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
-# commit message
 
 # Load the 20 Newsgroups dataset
 newsgroups = fetch_20newsgroups(subset='all')
